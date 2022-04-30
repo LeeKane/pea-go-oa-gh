@@ -42,9 +42,8 @@ func registerHandle(c *gin.Context) {
 	out, err := svc.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String("user"),
 		Item: map[string]types.AttributeValue{
-			"id":    &types.AttributeValueMemberS{Value: "12346"},
-			"name":  &types.AttributeValueMemberS{Value: "John Doe"},
-			"email": &types.AttributeValueMemberS{Value: "john@doe.io"},
+			"id":   &types.AttributeValueMemberS{Value: "1"},
+			"name": &types.AttributeValueMemberS{Value: "peaceli"},
 		},
 	})
 
