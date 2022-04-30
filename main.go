@@ -49,7 +49,8 @@ func registerHandle(c *gin.Context) {
 	})
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		log.Println(err)
 	}
 
 	fmt.Println(out.Attributes)
