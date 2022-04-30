@@ -72,7 +72,7 @@ func routerEngine() *gin.Engine {
 	r.GET("/user/:name", helloHandler)
 	r.GET("/", rootHandler)
 
-	r.POST("/api/register", welcomeHandler)
+	r.POST("/api/register", registerHandle)
 
 	return r
 }
