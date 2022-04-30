@@ -1,29 +1,47 @@
 package main
 
 import (
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/apex/gateway"
+	"github.com/gin-gonic/gin"
 )
 
-// Handler is executed by AWS Lambda in the main function. Once the request
-// is processed, it returns an Amazon API Gateway response object to AWS Lambda
-func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func helloHandler(c *gin.Context) {
+	name := c.Param("name")
+	c.String(http.StatusOK, "Hello %s", name)
+}
 
-	// index, err := ioutil.ReadFile("public/index.html")
-	// if err != nil {
-	// 	return events.APIGatewayProxyResponse{}, err
-	// }
+func welcomeHandler(c *gin.Context) {
+	c.String(http.StatusOK, "Hello World from Go")
+}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       "test",
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-	}, nil
+func rootHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"text": "Welcome to gin lambda server.",
+	})
+}
 
+func routerEngine() *gin.Engine {
+	// set server mode
+	gin.SetMode(gin.DebugMode)
+
+	r := gin.New()
+
+	// Global middleware
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+
+	r.GET("/welcome", welcomeHandler)
+	r.GET("/user/:name", helloHandler)
+	r.GET("/", rootHandler)
+
+	return r
 }
 
 func main() {
-	lambda.Start(Handler)
+	addr := ":" + os.Getenv("PORT")
+	log.Fatal(gateway.ListenAndServe(addr, routerEngine()))
 }
