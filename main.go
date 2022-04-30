@@ -15,6 +15,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
 func helloHandler(c *gin.Context) {
 	name := c.Param("name")
 	c.String(http.StatusOK, "Hello %s", name)
@@ -31,6 +36,10 @@ func rootHandler(c *gin.Context) {
 }
 
 func registerHandle(c *gin.Context) {
+	request := User{}
+	c.BindJSON(&request)
+	fmt.Println(request)
+	log.Println(request)
 	cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
 		o.Region = "us-east-1"
 		return nil
@@ -40,7 +49,7 @@ func registerHandle(c *gin.Context) {
 	}
 	svc := dynamodb.NewFromConfig(cfg)
 	out, err := svc.PutItem(context.TODO(), &dynamodb.PutItemInput{
-		TableName: aws.String("user"),
+		TableName: aws.String("user-oa"),
 		Item: map[string]types.AttributeValue{
 			"name":     &types.AttributeValueMemberS{Value: "peaceli"},
 			"password": &types.AttributeValueMemberS{Value: "csig"},
@@ -55,6 +64,56 @@ func registerHandle(c *gin.Context) {
 	fmt.Println(out.Attributes)
 	c.JSON(http.StatusOK, gin.H{
 		"text": "ok",
+	})
+}
+
+func loginHandle(c *gin.Context) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
+		o.Region = "us-east-1"
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	svc := dynamodb.NewFromConfig(cfg)
+	out, err := svc.PutItem(context.TODO(), &dynamodb.PutItemInput{
+		TableName: aws.String("user-oa"),
+		Item: map[string]types.AttributeValue{
+			"name":     &types.AttributeValueMemberS{Value: "peaceli"},
+			"password": &types.AttributeValueMemberS{Value: "csig"},
+		},
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		log.Println(err)
+	}
+
+	fmt.Println(out.Attributes)
+	c.JSON(http.StatusOK, gin.H{
+		"text": "ok",
+	})
+}
+
+func listUserHandle(c *gin.Context) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
+		o.Region = "us-east-1"
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	svc := dynamodb.NewFromConfig(cfg)
+	out, err := svc.Scan(context.TODO(), &dynamodb.ScanInput{
+		TableName: aws.String("user-oa"),
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(out.Items)
+	c.JSON(http.StatusOK, gin.H{
+		"data": out.Items,
 	})
 }
 
@@ -73,6 +132,8 @@ func routerEngine() *gin.Engine {
 	r.GET("/", rootHandler)
 
 	r.POST("/api/register", registerHandle)
+	r.POST("/api/login", loginHandle)
+	r.POST("/api/list_user", listUserHandle)
 
 	return r
 }
