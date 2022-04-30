@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// User
 type User struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
