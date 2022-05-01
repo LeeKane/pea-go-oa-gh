@@ -54,7 +54,6 @@ func registerHandle(c *gin.Context) {
 			"password": &types.AttributeValueMemberS{Value: request.Password},
 		},
 	})
-
 	if err != nil {
 		log.Println(err)
 	}
@@ -68,6 +67,36 @@ func registerHandle(c *gin.Context) {
 }
 
 func loginHandle(c *gin.Context) {
+	request := User{}
+	c.BindJSON(&request)
+	cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
+		o.Region = "us-east-1"
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	svc := dynamodb.NewFromConfig(cfg)
+	_, err = svc.GetItem(context.TODO(), &dynamodb.GetItemInput{
+		TableName: aws.String("user-oa"),
+		Key: map[string]types.AttributeValue{
+			"name": &types.AttributeValueMemberS{Value: request.Name},
+		},
+	})
+
+	if err != nil {
+		log.Println(err)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    "ok",
+	})
+}
+
+func listUserHandle(c *gin.Context) {
+	request := User{}
+	c.BindJSON(&request)
 	cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
 		o.Region = "us-east-1"
 		return nil
@@ -79,43 +108,20 @@ func loginHandle(c *gin.Context) {
 	out, err := svc.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String("user-oa"),
 		Item: map[string]types.AttributeValue{
-			"name":     &types.AttributeValueMemberS{Value: "peaceli"},
-			"password": &types.AttributeValueMemberS{Value: "csig"},
+			"name":     &types.AttributeValueMemberS{Value: request.Name},
+			"password": &types.AttributeValueMemberS{Value: request.Password},
 		},
 	})
 
 	if err != nil {
-		fmt.Println(err)
 		log.Println(err)
 	}
 
 	fmt.Println(out.Attributes)
 	c.JSON(http.StatusOK, gin.H{
-		"text": "ok",
-	})
-}
-
-func listUserHandle(c *gin.Context) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
-		o.Region = "us-east-1"
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
-	svc := dynamodb.NewFromConfig(cfg)
-	out, err := svc.Scan(context.TODO(), &dynamodb.ScanInput{
-		TableName: aws.String("user-oa"),
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(out.Items)
-	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
-		"data":    out.Items,
+		"data":    "ok",
 	})
 }
 
