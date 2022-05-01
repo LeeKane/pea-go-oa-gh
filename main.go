@@ -38,6 +38,7 @@ func rootHandler(c *gin.Context) {
 
 func registerHandle(c *gin.Context) {
 	request := User{}
+	log.Println(c.Request)
 	c.BindJSON(&request)
 	fmt.Println(request)
 	log.Println(request)
