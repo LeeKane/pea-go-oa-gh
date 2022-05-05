@@ -137,7 +137,7 @@ func routerEngine() *gin.Engine {
 
 	r.GET("/welcome", welcomeHandler)
 	r.GET("/user/:name", helloHandler)
-	r.GET("/", rootHandler)
+	r.StaticFile("/", "login_demo/index.html")
 
 	r.POST("/api/register", registerHandle)
 	r.POST("/api/login", loginHandle)
