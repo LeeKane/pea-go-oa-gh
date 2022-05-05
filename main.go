@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/apex/gateway"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,6 +15,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
+
+const (
+	sessionKey = "session_id"
+)
+
+var (
+	sessionMap sync.Map
 )
 
 //User user
@@ -77,10 +88,23 @@ func loginHandle(c *gin.Context) {
 			"name": &types.AttributeValueMemberS{Value: request.Name},
 		},
 	})
-
 	if err != nil {
 		log.Println(err)
 	}
+	user := User{
+		Name: request.Name,
+	}
+	sessionId, err := c.Cookie(sessionKey)
+	if err != nil {
+		if errors.Is(err, http.ErrNoCookie) {
+			sessionId = uuid.New().String()
+			c.SetCookie(sessionKey, sessionId, 86400,
+				"/", "", false, true)
+		} else {
+			c.Error(fmt.Errorf("unexpect error occurs, request: %+v, err: %s", ctx.Request, err.Error()))
+		}
+	}
+	sessionMap.Store(sessionId, &user)
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
@@ -113,14 +137,33 @@ func listUserHandle(c *gin.Context) {
 }
 
 func getUserHandle(c *gin.Context) {
-	user := User{
-		Name: "peaceli",
+	var user *User
+	sessionId, err := c.Cookie(sessionKey)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    -1,
+			"message": "error",
+			"data":    nil,
+		})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"code":    0,
-		"message": "success",
-		"data":    user,
-	})
+	if v, ok := sessionMap.Load(sessionId); ok {
+		user = v.(*User)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    0,
+			"message": "success",
+			"data":    user,
+		})
+		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    -1,
+			"message": "error",
+			"data":    nil,
+		})
+		return
+	}
+
 }
 
 func routerEngine() *gin.Engine {
