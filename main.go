@@ -89,8 +89,6 @@ func loginHandle(c *gin.Context) {
 }
 
 func listUserHandle(c *gin.Context) {
-	request := User{}
-	c.BindJSON(&request)
 	cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
 		o.Region = "us-east-1"
 		return nil
@@ -99,23 +97,18 @@ func listUserHandle(c *gin.Context) {
 		panic(err)
 	}
 	svc := dynamodb.NewFromConfig(cfg)
-	out, err := svc.PutItem(context.TODO(), &dynamodb.PutItemInput{
+	out, err := svc.Scan(context.TODO(), &dynamodb.ScanInput{
 		TableName: aws.String("user-oa"),
-		Item: map[string]types.AttributeValue{
-			"name":     &types.AttributeValueMemberS{Value: request.Name},
-			"password": &types.AttributeValueMemberS{Value: request.Password},
-		},
 	})
-
 	if err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
-	fmt.Println(out.Attributes)
+	fmt.Println(out.Items)
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
-		"data":    "ok",
+		"data":    out.Items,
 	})
 }
 
