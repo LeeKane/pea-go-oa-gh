@@ -30,12 +30,6 @@ func welcomeHandler(c *gin.Context) {
 	c.String(http.StatusOK, "Hello World from Go")
 }
 
-func rootHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"text": "Welcome to gin lambda server.",
-	})
-}
-
 func registerHandle(c *gin.Context) {
 	request := User{}
 	c.BindJSON(&request)
