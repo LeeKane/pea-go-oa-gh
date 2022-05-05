@@ -119,6 +119,17 @@ func listUserHandle(c *gin.Context) {
 	})
 }
 
+func getUserHandle(c *gin.Context) {
+	user := User{
+		Name: "peaceli",
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    user,
+	})
+}
+
 func routerEngine() *gin.Engine {
 	// set server mode
 	gin.SetMode(gin.DebugMode)
@@ -136,6 +147,7 @@ func routerEngine() *gin.Engine {
 	r.POST("/api/register", registerHandle)
 	r.POST("/api/login", loginHandle)
 	r.POST("/api/list_user", listUserHandle)
+	r.GET("/api/get_user", getUserHandle)
 
 	return r
 }
