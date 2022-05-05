@@ -12,6 +12,7 @@ import (
 	"github.com/apex/gateway"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/gin-gonic/gin"
@@ -28,8 +29,8 @@ var (
 
 //User user
 type User struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Name     string `json:"name" dynamodbav:"name"`
+	Password string `json:"password" dynamodbav:"password"`
 }
 
 func helloHandler(c *gin.Context) {
@@ -129,10 +130,15 @@ func listUserHandle(c *gin.Context) {
 	}
 
 	fmt.Println(out.Items)
+	userList := make([]User, 0)
+	err = attributevalue.UnmarshalListOfMaps(out.Items, &userList)
+	if err != nil {
+		panic(fmt.Sprintf("failed to unmarshal Dynamodb Scan Items, %v", err))
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
-		"data":    out.Items,
+		"data":    userList,
 	})
 }
 
