@@ -101,7 +101,7 @@ func loginHandle(c *gin.Context) {
 			c.SetCookie(sessionKey, sessionId, 86400,
 				"/", "", false, true)
 		} else {
-			c.Error(fmt.Errorf("unexpect error occurs, request: %+v, err: %s", ctx.Request, err.Error()))
+			c.Error(fmt.Errorf("unexpect error occurs, request: %+v, err: %s", c.Request, err.Error()))
 		}
 	}
 	sessionMap.Store(sessionId, &user)
