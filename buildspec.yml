@@ -42,6 +42,10 @@ phases:
     # Copy static assets to S3, and package application with AWS CloudFormation/SAM
     - aws s3 cp --recursive public/ s3://$WEBSITE_S3_BUCKET/public/ --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
     - sed -i -e "s|assets/|$WEBSITE_S3_PREFIX/public/assets/|g" public/index.html
+    #    - sed -i -e "s|/api/|/Prod/api/|g" login_demo/static/js/main.4be7eb7c.js
+    - sed -i -e "s|/api/|api/|g" login_demo/static/js/main.4be7eb7c.js
+    - aws s3 cp --recursive login_demo/ s3://$WEBSITE_S3_BUCKET/login_demo/ --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
+    - sed -i -e "s|static/|$WEBSITE_S3_PREFIX/login_demo/static/|g" login_demo/index.html
     - aws cloudformation package --template template.yml --s3-bucket $S3_BUCKET --output-template template-export.yml
 
   post_build:
