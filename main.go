@@ -94,17 +94,17 @@ func loginHandle(c *gin.Context) {
 	user := User{
 		Name: request.Name,
 	}
-	sessionId, err := c.Cookie(sessionKey)
+	sessionID, err := c.Cookie(sessionKey)
 	if err != nil {
 		if errors.Is(err, http.ErrNoCookie) {
-			sessionId = uuid.New().String()
-			c.SetCookie(sessionKey, sessionId, 86400,
+			sessionID = uuid.New().String()
+			c.SetCookie(sessionKey, sessionID, 86400,
 				"/", "", false, true)
 		} else {
 			c.Error(fmt.Errorf("unexpect error occurs, request: %+v, err: %s", c.Request, err.Error()))
 		}
 	}
-	sessionMap.Store(sessionId, &user)
+	sessionMap.Store(sessionID, &user)
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
@@ -138,7 +138,7 @@ func listUserHandle(c *gin.Context) {
 
 func getUserHandle(c *gin.Context) {
 	var user *User
-	sessionId, err := c.Cookie(sessionKey)
+	sessionID, err := c.Cookie(sessionKey)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    -1,
@@ -147,7 +147,7 @@ func getUserHandle(c *gin.Context) {
 		})
 		return
 	}
-	if v, ok := sessionMap.Load(sessionId); ok {
+	if v, ok := sessionMap.Load(sessionID); ok {
 		user = v.(*User)
 		c.JSON(http.StatusOK, gin.H{
 			"code":    0,
@@ -155,15 +155,12 @@ func getUserHandle(c *gin.Context) {
 			"data":    user,
 		})
 		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": "error",
-			"data":    nil,
-		})
-		return
 	}
-
+	c.JSON(http.StatusOK, gin.H{
+		"code":    -1,
+		"message": "error",
+		"data":    nil,
+	})
 }
 
 func routerEngine() *gin.Engine {
